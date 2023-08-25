@@ -1,9 +1,13 @@
 package com.cloud.cloud_storage_sdk;
 
+import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.servlet.http.HttpServletResponse;
+
 import org.sunbird.cloud.storage.BaseStorageService;
 import org.sunbird.cloud.storage.factory.StorageConfig;
 import org.sunbird.cloud.storage.factory.StorageServiceFactory;
@@ -20,14 +24,19 @@ public class CloudController {
 	private static String provider;
 	private static String storageKey;
 	private static String storageSecret;
+	private static Option<String> storageEndpoint;
+	private static Option<String> storageRegion;
 
 	@Autowired
 	public CloudController(@Value("${cloud.provider}") String provider, @Value("${cloud.storageKey}") String storageKey,
-			@Value("${cloud.storageSecret}") String storageSecret) {
+			@Value("${cloud.storageSecret}") String storageSecret,
+			@Value("${cloud.storageEndpoint}") String storageEndpoint,
+			@Value("${cloud.storageRegion}") String storageRegion) {
 		CloudController.provider = provider;
 		CloudController.storageKey = storageKey;
 		CloudController.storageSecret = storageSecret;
-
+		CloudController.storageEndpoint = scala.Option.apply(storageEndpoint);
+		CloudController.storageRegion = scala.Option.apply(storageRegion);
 	}
 
 	private static final int STORAGE_SERVICE_API_RETRY_COUNT = 3;
@@ -63,27 +72,36 @@ public class CloudController {
 
 	@GetMapping("/delete")
 	public static void deleteFile(@RequestParam(name = "container") String container,
-			@RequestParam(name = "objectKey") String objectKey) {
+			@RequestParam(name = "objectKey") String objectKey, HttpServletResponse response) throws IOException {
 		String dcontainer = URLDecoder.decode(container, StandardCharsets.UTF_8);
 		String dobjectKey = URLDecoder.decode(objectKey, StandardCharsets.UTF_8);
 		BaseStorageService storageService = getStorageService(provider);
-		storageService.deleteObject(dcontainer, dobjectKey, Option.apply(false));
+		try {
+			storageService.deleteObject(dcontainer, dobjectKey, Option.apply(false));
+		} catch (Exception e) {
+			System.out.println("A exception occured:" + e);
+		}
 	}
-	
+
 	@GetMapping("/download")
 	public static void dowloadFile(@RequestParam(name = "container") String container,
-			@RequestParam(name = "objectKey") String objectKey,@RequestParam(name = "filePath") String filePath) {
+			@RequestParam(name = "objectKey") String objectKey, @RequestParam(name = "filePath") String filePath) {
 		String dcontainer = URLDecoder.decode(container, StandardCharsets.UTF_8);
 		String dobjectKey = URLDecoder.decode(objectKey, StandardCharsets.UTF_8);
 		String dfilePath = URLDecoder.decode(filePath, StandardCharsets.UTF_8);
 
 		BaseStorageService storageService = getStorageService(provider);
-		storageService.download(dcontainer, dobjectKey,dfilePath, Option.apply(false));
+		try {
+			storageService.download(dcontainer, dobjectKey, dfilePath, Option.apply(false));
+		} catch (Exception e) {
+			System.out.println("A exception occured:" + e);
+		}
 	}
 
 	private static BaseStorageService getStorageService(String storageType) {
-		Option<String> storageEndpoint = scala.Option.apply("");
-		Option<String> storageRegion = scala.Option.apply("");
+		Option<String> storageEndpoint = CloudController.storageEndpoint;
+		Option<String> storageRegion = CloudController.storageRegion;
+
 		return getStorageService(storageType, storageKey, storageSecret, storageEndpoint, storageRegion);
 	}
 
