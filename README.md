@@ -1,6 +1,11 @@
 # Sunbird-Cloud-Storage-SDK-Demo
 
 ### Setup
+
+#### Prerequisites
+- JDK 11
+- Maven
+---
 1. #### Clone the Repository:
 Open a terminal or command prompt and navigate to the directory where you want to clone the project. Use the git clone command to clone the repository.
 
@@ -11,7 +16,7 @@ git clone git@github.com:abhishekpnt/cloud-storage-sdk-demo.git
 2. #### Navigate to the Project Directory:
 Change your working directory to the cloned project's directory:
   ```
-cd project-directory
+cd cloud-storage
 ```
 
 3. #### Set CSP related configuration:
